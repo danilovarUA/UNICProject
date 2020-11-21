@@ -36,7 +36,10 @@ class Database:
             return result
         else:
             rows = self.cursor.fetchall()
-            return True, len(rows) == 1
+            if len(rows) == 1:
+                return True, None
+            else:
+                return False, "User not found"
 
     def add_rating(self):
         pass
