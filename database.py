@@ -30,7 +30,6 @@ class Database:
 
     def check_user(self, email, password):
         query = "SELECT * FROM user WHERE email='{}' AND password='{}'".format(email, password)
-        print(query)
         result = self._perform_query(query)
         if not result[0]:
             return result
@@ -41,17 +40,36 @@ class Database:
             else:
                 return False, "User not found"
 
-    def add_rating(self):
-        pass
+    def add_rating(self, user_id, movie_id, rating):
+        query = "INSERT INTO rating (user_id,movie_id, rating) VALUES( '{}', '{}', '{}')".format(
+            user_id, movie_id, rating)
+        return self._perform_query(query)
 
-    def add_movie(self):
-        pass
-
-    def add_recommendation(self):
-        pass
-
-    def remove_recommendation(self):
-        pass
+    def search_movies(self, search_string):
+        query = "SELECT * FROM movie WHERE name LIKE '{}'".format(search_string)
+        result = self._perform_query(query)
+        if result[0]:
+            return True, self.cursor.fetchall()
+        return result
 
     def __del__(self):
         self.connection.close()
+
+
+if __name__ == "__main__":
+    # populate movies
+    # movies = ["Titanic", "The Wizard of Oz", "Star Wars: Episode IV - A New Hope",
+    #           "The Lord of the Rings: The Return of the King", "Snow White and the Seven Dwarfs ",
+    #           "Terminator 2: Judgment Day", "The Lion King", "The Godfather", "The Jesus Film", "Jurassic Park",
+    #           "Raiders of the Lost Ark", "The Shawshank Redemption", "The Dark Knight",
+    #           "Pirates of the Caribbean: The Curse of the Black Pearl", "Jaws", "Fight Club", "Pulp Fiction",
+    #           "Forrest Gump", "Shrek", "Transformers", "The Matrix"]
+    # db = Database()
+    # for mov in movies:
+    #     query = "INSERT INTO movie (name) VALUES( '{}')".format(mov)
+    #     print (db._perform_query(query))
+
+    # movie search test
+    db = Database()
+    res = db.search_movies('the dark knight')
+    print(res)
