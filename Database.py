@@ -12,7 +12,7 @@ class Database:
     connection = None
     cursor = None
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=True):
         self.debug = debug
         self.connection = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
         self.connection.create_function("REGEXP", 2, regexp)
@@ -82,6 +82,6 @@ if __name__ == "__main__":
 
     # movie search test
     db = Database()
-    res = db.select({"name": 'T/*'}, 'movie')
+    res = db.select({"name": '^$'}, 'movie')
     print(res)
 

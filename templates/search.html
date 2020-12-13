@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block main %}
   <h3 class="m-3">Welcome {{data.person_name}}🤗! Let's find a movie you watched</h3>
-
+  <p class=" text-warning m-3"><b>{{data.message}}</b></p>
 <form action="/results" method="POST">
   <div class="form-group m-3">
     <input type="text" name="search_string" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Movie name">

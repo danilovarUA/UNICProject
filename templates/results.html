@@ -1,5 +1,17 @@
 {% extends 'base.html' %}
 {% block main %}
-  <p>Welcome {{person_name}}</p>
-    YEP, MY RESULT IS ZERO AHAHAHAHAHA
+<form class="m-3" action="/like" method="POST">
+  {% for key, value in data.movies %}
+
+  <div class="form-check m-2">
+  <input class="form-check-input" type="radio" name="movie" id="exampleRadios1" value="{{value}}" checked>
+  <label class="form-check-label" for="exampleRadios1">
+    {{value}}
+  </label>
+</div>
+  {% endfor %}
+  <div class="my-3">
+    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">Like</button>
+  </div>
+</form>
 {% endblock %}

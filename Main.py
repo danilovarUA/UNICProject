@@ -67,22 +67,45 @@ def check_and_go(page_name, additional_data=None):
         return redirect(url_for('login', error=error))
 
 
-@app.route('/search', methods=['GET', 'POST'])
-def search():
+def get_current_user():
     email = request.cookies.get('email')
     password = request.cookies.get("password")
     _, data = db.select({"email": "^" + email + "$", "password": "^" + password + "$"}, 'user')
     try:
-        top_up_data = {"person_name": data[0][3]}
+        return data[0]
     except IndexError:
-        top_up_data = {}
+        return None
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    user = get_current_user()
+    top_up_data = {}
+    if user is not None:
+        top_up_data = {"person_name": user[3]}
+    if "rank" in request.form:
+        _, data = db.select({"name": request.form["movie"]}, "movie")
+        movie_id = data[0][0]
+        user_id = get_current_user()[0]
+        db.insert({"movie_id": movie_id, "user_id": user_id, "rating": request.form["rank"]}, "rating")
+        top_up_data.update({"message": "Your like {} for movie {} was added".format(request.form["rank"],
+                                                                                    request.form["movie"])})
     return check_and_go("search", top_up_data)
 
 
 @app.route('/results', methods=['GET', 'POST'])
 def results():
+    top_up_data = {}
+    _, data = db.select({"name": '^{}$'.format(request.form["search_string"])}, 'movie')
+    print(data)
+    top_up_data.update({"movies": data})
+    return check_and_go("results", top_up_data)
 
-    return check_and_go("results")
+
+@app.route('/like', methods=['GET', 'POST'])
+def like():
+    top_up_data = {"movie": request.form["movie"]}
+    return check_and_go("like", top_up_data)
 
 
 app.run(host=IP_ADDRESS, port=PORT)
