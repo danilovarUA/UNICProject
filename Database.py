@@ -12,17 +12,24 @@ class Database:
     connection = None
     cursor = None
 
-    def __init__(self):
+    def __init__(self, debug=False):
+        self.debug = debug
         self.connection = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
         self.connection.create_function("REGEXP", 2, regexp)
         self.cursor = self.connection.cursor()
+        if self.debug:
+            print("Database was initialised")
 
     def _perform_query_(self, query):
         try:
             self.cursor.execute(query)
             self.connection.commit()
+            if self.debug:
+                print("_perform_query_ was successfull")
             return True, None
         except sqlite3.DatabaseError as error:
+            if self.debug:
+                print("_perform_query_ was not successfull: {}".format(error))
             return False, str(error)
 
     def select(self, data, table):
@@ -31,10 +38,14 @@ class Database:
             value = data[name]
             selectors.append("{} REGEXP '{}'".format(name, value))
         query = "SELECT * FROM {} WHERE {}".format(table, " AND ".join(selectors))
-        print(query)
+        if self.debug:
+            print("Database created select query: {}".format(query))
         result = self._perform_query_(query)
         if result[0]:
-            return True, self.cursor.fetchall()
+            data = self.cursor.fetchall()
+            if self.debug:
+                print("Date returned: {}".format(data))
+            return True, data
         return result
 
     def insert(self, data, table):
@@ -46,10 +57,15 @@ class Database:
             field_values.append("'{}'".format(value))
         query = "INSERT INTO {} ({}) VALUES ({})".format(table, ", ".join(field_names),
                                                          ", ".join(field_values))
+        if self.debug:
+            print("Database created insert query: {}".format(query))
         return self._perform_query_(query)
 
     def __del__(self):
         self.connection.close()
+        if self.debug:
+            print("Database was destroyed")
+
 
 if __name__ == "__main__":
     # populate movies

@@ -1,11 +1,11 @@
 default_values = {"name": "Series Recommendation System"}
-pages = {"login": {"path": "login.html",
+pages = {"login": {"url": "login.html",
                    "header": "Login Page"},
-         "register": {"path": "register.html",
+         "register": {"url": "register.html",
                       "header": "Register Page"},
-         "search": {"path": "search.html",
+         "search": {"url": "search.html",
                     "header": "Search Page"},
-         "results": {"path": "results.html",
+         "results": {"url": "results.html",
                      "header": "Results Page"}}
 
 for page_name in pages:

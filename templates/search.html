@@ -1,21 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>{{name}}</h1>
-  <h2>{{header}}</h2>
-  <p>Welcome {{person_name}}</p>
-    <form action="/results" method="POST">
-    <input type="text" name="search_string">
-    <br />
-    <input type="hidden" name="email" value="{{person_name}}">
-    <br />
-    <input type="hidden" name="password" value="{{password}}">
-    <br />
-    <input type="submit" name="submit">
-  </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block main %}
+  <h3 class="m-3">Welcome {{data.person_name}}🤗! Let's find a movie you watched</h3>
+
+<form action="/results" method="POST">
+  <div class="form-group m-3">
+    <input type="text" name="search_string" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Movie name">
+  </div>
+  <div class="m-3">
+    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+  </div>
+</form>
+{% endblock %}
