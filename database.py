@@ -1,5 +1,11 @@
 import sqlite3
+import re
 DATABASE_NAME = "project_database.db"
+
+
+def regexp(expr, item):
+    reg = re.compile(expr)
+    return reg.search(item) is not None
 
 
 class Database:
@@ -8,53 +14,42 @@ class Database:
 
     def __init__(self):
         self.connection = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
+        self.connection.create_function("REGEXP", 2, regexp)
         self.cursor = self.connection.cursor()
 
-    def _perform_query(self, query):
+    def _perform_query_(self, query):
         try:
             self.cursor.execute(query)
             self.connection.commit()
             return True, None
-        except sqlite3.OperationalError as error:
+        except sqlite3.DatabaseError as error:
             return False, str(error)
 
-    def add_user(self, email, password):
-        query = "INSERT INTO user (email,password) VALUES( '{}',	'{}')".format(email, password)
-        try:
-            return self._perform_query(query)
-        except sqlite3.IntegrityError as error:
-            if "UNIQUE constraint failed: user.email" == str(error):
-                return False, "This email is already registered"
-            else:
-                return False, error
-
-    def check_user(self, email, password):
-        query = "SELECT * FROM user WHERE email='{}' AND password='{}'".format(email, password)
-        result = self._perform_query(query)
-        if not result[0]:
-            return result
-        else:
-            rows = self.cursor.fetchall()
-            if len(rows) == 1:
-                return True, None
-            else:
-                return False, "User not found"
-
-    def add_rating(self, user_id, movie_id, rating):
-        query = "INSERT INTO rating (user_id,movie_id, rating) VALUES( '{}', '{}', '{}')".format(
-            user_id, movie_id, rating)
-        return self._perform_query(query)
-
-    def search_movies(self, search_string):
-        query = "SELECT * FROM movie WHERE name LIKE '{}'".format(search_string)
-        result = self._perform_query(query)
+    def select(self, data, table):
+        selectors = []
+        for name in data:
+            value = data[name]
+            selectors.append("{} REGEXP '{}'".format(name, value))
+        query = "SELECT * FROM {} WHERE {}".format(table, " AND ".join(selectors))
+        print(query)
+        result = self._perform_query_(query)
         if result[0]:
             return True, self.cursor.fetchall()
         return result
 
+    def insert(self, data, table):
+        field_names = []
+        field_values = []
+        for name in data:
+            value = data[name]
+            field_names.append("'{}'".format(name))
+            field_values.append("'{}'".format(value))
+        query = "INSERT INTO {} ({}) VALUES ({})".format(table, ", ".join(field_names),
+                                                         ", ".join(field_values))
+        return self._perform_query_(query)
+
     def __del__(self):
         self.connection.close()
-
 
 if __name__ == "__main__":
     # populate movies
@@ -71,5 +66,6 @@ if __name__ == "__main__":
 
     # movie search test
     db = Database()
-    res = db.search_movies('the dark knight')
+    res = db.select({"name": 'T/*'}, 'movie')
     print(res)
+
