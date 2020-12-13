@@ -11,7 +11,3 @@ search_page_page_header = "Search Page"
 
 results_page_path = "results.html"
 results_page_page_header = "Results Page"
-
-flask_server_name = "Server"
-flask_ip_address = "0.0.0.0"
-flask_port = 105

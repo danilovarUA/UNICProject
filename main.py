@@ -2,8 +2,11 @@ from database import Database
 from flask import Flask, request, render_template
 import constants
 
+SERVER_NAME = "Server"
+IP_ADDRESS = "0.0.0.0"
+PORT = 105
 
-app = Flask(constants.flask_server_name)
+app = Flask(SERVER_NAME)
 app.config["DEBUG"] = True
 db = Database()
 
@@ -50,4 +53,4 @@ def results_page():
                                error=data)
 
 
-app.run(host=constants.flask_ip_address, port=constants.flask_port)
+app.run(host=IP_ADDRESS, port=PORT)
