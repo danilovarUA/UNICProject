@@ -40,10 +40,13 @@ def set_login_cookies():
 
 
 def logged_in_cookies():
-    email = request.cookies.get('email')
-    password = request.cookies.get("password")
-    success, data = db.select({"email": "^" + email + "$", "password": "^" + password + "$"}, 'user')
-    success = success & len(data) == 1  # query was successful and one entry was found with that email and password
+    try:
+        email = request.cookies.get('email')
+        password = request.cookies.get("password")
+        success, data = db.select({"email": "^" + email + "$", "password": "^" + password + "$"}, 'user')
+        success = success & len(data) == 1  # query was successful and one entry was found with that email and password
+    except TypeError:
+        return False, "No cookies"
     if not success and len(data) == 0:
         data = "No such email"
     if email == "":
