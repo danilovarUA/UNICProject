@@ -69,8 +69,8 @@ def prefill_likes(clean=True):
             movie_counter += 1
             rating = random.randint(1, 5)
             result = db.insert({"movie_id": movie_id, "user_id": user_id, "rating": rating}, table_name)
-            print("Inserting like for user {}/{} and movie {}/{} [{}]".format(
-                user_counter, len(user_ids),movie_counter, len(movie_ids), result))
+            print("Inserting like for user {}/{} and movie {} {}/{} [{}]".format(
+                user_counter, len(user_ids), movie_id, movie_counter, len(movie_ids), result))
 
 
 def main(movies=False, users=False, likes=True):
