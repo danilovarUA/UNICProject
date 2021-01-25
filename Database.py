@@ -1,6 +1,8 @@
 import sqlite3
 import re
-DATABASE_NAME = "../data/project_database.db"
+import os
+
+DATABASE_NAME = "{}/data/project_database.db".format(os.path.dirname(os.path.abspath(__file__)))
 
 
 def regexp(expr, item):
@@ -75,6 +77,12 @@ class Database:
             if self.debug:
                 print("Data returned: {}".format(data))
             return True, data
+        return result
+
+    def delete_all(self, table):
+        # TODO reimplement using only delete and FUCKING DEPRECATE IT
+        query = "DELETE FROM {}".format(table)
+        result = self._perform_query_(query)
         return result
 
     def __del__(self):
