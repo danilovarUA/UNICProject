@@ -1,4 +1,4 @@
-from Database import session, User, Movie, Rating
+from Database import session, User, Movie, Rating, Recommendation
 from flask import Flask, request, render_template, redirect, url_for
 import PageValues
 from Exceptions import AuthorisationException
@@ -114,6 +114,28 @@ def like():
         check_logged_in()
         movie = session.query(Movie).filter_by(id=request.form["movie_id"]).first()
         return go_to_page("like", {"movie": movie})
+    except AuthorisationException:
+        return redirect(url_for('login'))
+
+
+@app.route('/recommendations', methods=['GET', 'POST'])
+def recommendations():
+    try:
+        check_logged_in()
+        recs = session.query(Movie, Recommendation).filter(Recommendation.user_id == get_current_user().id
+                                                           ).filter(Movie.id == Recommendation.movie_id).all()
+        return go_to_page("recommendations", {"recommendations": recs})
+    except AuthorisationException:
+        return redirect(url_for('login'))
+
+
+@app.route('/likes_history', methods=['GET', 'POST'])
+def likes_history():
+    try:
+        check_logged_in()
+        recs = session.query(Movie, Rating).filter(Rating.user_id == get_current_user().id
+                                                           ).filter(Movie.id == Rating.movie_id).all()
+        return go_to_page("likes_history", {"likes": recs})
     except AuthorisationException:
         return redirect(url_for('login'))
 
