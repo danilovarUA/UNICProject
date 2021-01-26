@@ -1,114 +1,122 @@
-from Database import Database
+from Database import session, User, Movie, Rating
 from flask import Flask, request, render_template, redirect, url_for
 import PageValues
+from Exceptions import AuthorisationException
 
-SERVER_NAME = "Server"
 IP_ADDRESS = "0.0.0.0"
 PORT = 105
 DEFAULT_PAGE = "search"
-
-app = Flask(SERVER_NAME)
+app = Flask(__name__)
 app.config["DEBUG"] = True
-db = Database()
 
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    logged_in, error = logged_in_cookies()
-    if logged_in:
+    try:
+        check_logged_in()
         return redirect(url_for(DEFAULT_PAGE))
-    page_data = PageValues.pages["login"]
-    if "error" in request.values:
-        page_data["error"] = request.values["error"]
-    return render_template(page_data["url"], data=page_data)
+    except AuthorisationException:
+        data = PageValues.pages["login"]
+        if "error" in request.values:
+            data["error"] = request.values["error"]
+        return render_template(data["url"], data=data)
 
 
 @app.route('/set_login_cookies', methods=['GET', 'POST'])
 def set_login_cookies():
-    if request.method in ['POST','GET']:
-        if "reset" in request.values:
-            email = ""
-            password = ""
-        else:
-            email = request.form['email']
-            password = request.form["password"]
-        resp = redirect(url_for(DEFAULT_PAGE))
-        resp.set_cookie('email', email)
-        resp.set_cookie('password', password)
-        return resp
+    resp = redirect(url_for(DEFAULT_PAGE))
+    if "reset" in request.values:
+        email = ""
+        password = ""
+    else:
+        email = request.form['email']
+        password = request.form["password"]
+    resp.set_cookie('email', email)
+    resp.set_cookie('password', password)
+    return resp
 
 
-def logged_in_cookies():
+def check_logged_in():
     try:
         email = request.cookies.get('email')
         password = request.cookies.get("password")
-        success, data = db.select({"email": "^" + email + "$", "password": "^" + password + "$"}, 'user')
-        success = success & len(data) == 1  # query was successful and one entry was found with that email and password
+        user = session.query(User).filter_by(email=email, password=password).first()
+        if user is None:
+            raise AuthorisationException("No such user")
     except TypeError:
-        return False, "No cookies"
-    if not success and len(data) == 0:
-        data = "No such email"
-    if email == "":
-        data = ""
-    return success, data
+        raise AuthorisationException("No cookies")
+
+
+def go_to_page(url_name, additional_data):
+    data = PageValues.pages[url_name]
+    data.update(additional_data)
+    return render_template(data["url"], data=data)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    raise ValueError("Not implemented")
-
-
-def check_and_go(page_name, additional_data=None):
-    logged_in, error = logged_in_cookies()
-    if logged_in:
-        page_data = PageValues.pages[page_name]
-        if additional_data is not None:
-            page_data.update(additional_data)
-        return render_template(page_data["url"], data=page_data)
-    else:
-        return redirect(url_for('login', error=error))
+    try:
+        check_logged_in()
+        return redirect(url_for(DEFAULT_PAGE))
+    except AuthorisationException:
+        data = PageValues.pages["register"]
+        if "error" in request.values:
+            data["error"] = request.values["error"]
+        if "email" in request.form and "password" in request.form and "name" in request.form:
+            user = User(name=request.form["name"], email=request.form["email"], password=request.form["password"])
+            session.add(user)
+            session.commit()
+            # TODO: might throw exception if constrains are violated
+            return redirect(url_for("set_login_cookies"))
+        # TODO: check if it works with all the form fields
+        return render_template(data["url"], data=data)
 
 
 def get_current_user():
-    email = request.cookies.get('email')
-    password = request.cookies.get("password")
-    _, data = db.select({"email": "^" + email + "$", "password": "^" + password + "$"}, 'user')
-    try:
-        return data[0]
-    except IndexError:
-        return None
+    return session.query(User).filter_by(email=request.cookies.get('email'),
+                                         password=request.cookies.get("password")).first()
 
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    user = get_current_user()
-    top_up_data = {}
-    if user is not None:
-        top_up_data = {"person_name": user[3]}
-    if "rank" in request.form:
-        _, data = db.select({"name": request.form["movie"]}, "movie")
-        movie_id = data[0][0]
-        user_id = get_current_user()[0]
-        db.insert({"movie_id": movie_id, "user_id": user_id, "rating": request.form["rank"]}, "rating")
-        top_up_data.update({"message": "Your like {} for movie {} was added".format(request.form["rank"],
-                                                                                    request.form["movie"])})
-    return check_and_go("search", top_up_data)
+    try:
+        check_logged_in()
+        user = get_current_user()
+        data = {"person_name": user.name}
+        print(request.form)
+        if "rank" in request.form and "movie_id" in request.form:  # Redirected here after adding like
+            movie = session.query(Movie).filter_by(id=request.form["movie_id"]).first()
+            session.add(Rating(user_id=user.id, movie_id=movie.id, mark=request.form["rank"]))
+            session.commit()
+            data["message"] = "Your like {} for movie '{}' was added".format(request.form["rank"], movie.name)
+
+        return go_to_page("search", data)
+    except AuthorisationException:
+        return redirect(url_for('login'))
 
 
 @app.route('/results', methods=['GET', 'POST'])
 def results():
-    top_up_data = {}
-    _, data = db.select({"name": '^{}$'.format(request.form["search_string"])}, 'movie')
-    print(data)
-    top_up_data.update({"movies": data})
-    return check_and_go("results", top_up_data)
+    try:
+        check_logged_in()
+        movies = []
+        if "search_string" in request.form:
+            movies = session.query(Movie).filter(Movie.name.contains(request.form["search_string"])).all()
+        return go_to_page("results", {"movies": movies})
+    except AuthorisationException:
+        return redirect(url_for('login'))
 
 
 @app.route('/like', methods=['GET', 'POST'])
 def like():
-    top_up_data = {"movie": request.form["movie"]}
-    return check_and_go("like", top_up_data)
+    try:
+        check_logged_in()
+        movie = session.query(Movie).filter_by(id=request.form["movie_id"]).first()
+        return go_to_page("like", {"movie": movie})
+    except AuthorisationException:
+        return redirect(url_for('login'))
 
 
-app.run(host=IP_ADDRESS, port=PORT)
+if __name__ == "__main__":
+    app.run(host=IP_ADDRESS, port=PORT)

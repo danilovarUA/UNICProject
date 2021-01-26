@@ -1,94 +1,56 @@
-import sqlite3
-import re
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
+from sqlalchemy import create_engine
 import os
 
-DATABASE_NAME = "{}/data/project_database.db".format(os.path.dirname(os.path.abspath(__file__)))
+DATABASE_PATH = "sqlite:///{}/data/database.db?check_same_thread=False".format(os.path.dirname(os.path.abspath(
+    __file__)))
+engine = create_engine(DATABASE_PATH, echo=False)
+Base = declarative_base()
+session_maker = sessionmaker(bind=engine)
+session = session_maker()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String)
+    password = Column(String)
+
+    def __repr__(self):
+        return "User(id={}, name={}, password={})".format(self.id, self.name, self.password)
 
 
-def regexp(expr, item):
-    reg = re.compile(expr)
-    return reg.search(item) is not None
+class Movie(Base):
+    __tablename__ = 'movies'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    def __repr__(self):
+        return "Movie(id={}, name={})".format(self.id, self.name)
 
 
-class Database:
-    connection = None
-    cursor = None
+class Rating(Base):
+    __tablename__ = 'ratings'
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
+    mark = Column(Integer)
 
-    def __init__(self):
-        self.connection = sqlite3.connect(DATABASE_NAME, check_same_thread=False)
-        self.connection.create_function("REGEXP", 2, regexp)
-        self.cursor = self.connection.cursor()
+    def __repr__(self):
+        return "Rating(user_id={}, movie_id={}, mark={})".format(self.user_id, self.movie_id, self.mark)
 
-    def _perform_query_(self, query):
-        try:
-            self.cursor.execute(query)
-            self.connection.commit()
-            return True, None
-        except sqlite3.DatabaseError as error:
-            print("query ({}) was not successful: {}".format(query, error))
-            return False, str(error)
 
-    def select(self, data, table):
-        selectors = []
-        for name in data:
-            value = data[name]
-            selectors.append("{} REGEXP '{}'".format(name, value))
-        query = "SELECT * FROM {} WHERE {}".format(table, " AND ".join(selectors))
-        result = self._perform_query_(query)
-        if result[0]:
-            data = self.cursor.fetchall()
-            return True, data
-        return result
+class Recommendation(Base):
+    __tablename__ = 'recommendations'
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
+    expected_mark = Column(Float)
 
-    def select_eq(self, data, table):
-        selectors = []
-        for name in data:
-            value = data[name]
-            selectors.append("{} = '{}'".format(name, value))
-        query = "SELECT * FROM {} WHERE {}".format(table, " AND ".join(selectors))
-        result = self._perform_query_(query)
-        if result[0]:
-            data = self.cursor.fetchall()
-            return True, data
-        return result
+    def __repr__(self):
+        return "Recommendation(user_id={}, movie_id={}, mark={})".format(
+            self.user_id, self.movie_id, self.expected_mark)
 
-    def insert(self, data, table):
-        field_names = []
-        field_values = []
-        for name in data:
-            value = data[name]
-            field_names.append("'{}'".format(name))
-            field_values.append("'{}'".format(value))
-        query = "INSERT INTO {} ({}) VALUES ({})".format(table, ", ".join(field_names),
-                                                         ", ".join(field_values))
-        return self._perform_query_(query)
 
-    def delete(self, data, table):
-        selectors = []
-        for name in data:
-            value = data[name]
-            selectors.append("{} REGEXP '{}'".format(name, value))
-        query = "DELETE FROM {} WHERE {}".format(table, " AND ".join(selectors))
-        result = self._perform_query_(query)
-        if result[0]:
-            data = self.cursor.fetchall()
-            return True, data
-        return result
-
-    def delete_all(self, table):
-        # TODO reimplement using only delete and FUCKING DEPRECATE IT
-        query = "DELETE FROM {}".format(table)
-        result = self._perform_query_(query)
-        return result
-
-    def select_all(self, table):
-        # TODO reimplement using only select and FUCKING DEPRECATE IT
-        query = "SELECT * FROM {}".format(table)
-        result = self._perform_query_(query)
-        if result[0]:
-            data = self.cursor.fetchall()
-            return True, data
-        return result
-
-    def __del__(self):
-        self.connection.close()
+if __name__ == "__main__":
+    Base.metadata.create_all(engine)

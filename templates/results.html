@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% block main %}
 <form class="m-3" action="/like" method="POST">
-  {% for key, value in data.movies %}
+  {% for movie in data.movies %}
 
   <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="movie" id="exampleRadios1" value="{{value}}" checked>
-  <label class="form-check-label" for="exampleRadios1">
-    {{value}}
+  <input class="form-check-input" type="radio" name="movie_id" id="radio1" value="{{movie.id}}" checked>
+  <label class="form-check-label" for="radio1">
+    {{movie.name}}
   </label>
 </div>
   {% endfor %}

@@ -1,11 +1,11 @@
-from Database import Database
+from Database import session
 from Rater import Rater
 import Constants
 
 
 class RecommendationEngine:
     def __init__(self):
-        self.database = Database()
+        self.session = s
         self.rating = self.database.select_all("rating")[1]
         self.rater = None
         self.initialise_rater()
