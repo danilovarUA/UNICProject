@@ -1,4 +1,3 @@
-from Database import Database
 import pandas as pd
 from surprise import Reader, Dataset, KNNWithMeans
 import Constants
@@ -6,21 +5,21 @@ import Constants
 #  https://realpython.com/build-recommendation-engine-collaborative-filtering/#how-to-find-similar-users-on-the-basis-of-ratings
 
 class Rater:
-    def __init__(self, rating):
+    def __init__(self, ratings):
         self.classifier = KNNWithMeans(sim_options={"name": "cosine", "user_based": False})
         self.training_set = None
         self.ratings_dict = None
-        self._prepare_data_(rating)
+        self._prepare_data_(ratings)
         self._train_()
 
-    def _prepare_data_(self, rating):
+    def _prepare_data_(self, ratings):
         self.ratings_dict = {
-            "user_id": [item[0] for item in rating],
-            "movie_id": [item[1] for item in rating],
-            "rating": [item[2] for item in rating]
+            "user_id": [item.user_id for item in ratings],
+            "movie_id": [item.movie_id for item in ratings],
+            "mark": [item.mark for item in ratings]
         }
         df = pd.DataFrame(self.ratings_dict)
-        data = Dataset.load_from_df(df[["user_id", "movie_id", "rating"]], Reader(rating_scale=Constants.RATING_SCALE))
+        data = Dataset.load_from_df(df[["user_id", "movie_id", "mark"]], Reader(rating_scale=Constants.RATING_SCALE))
         self.training_set = data.build_full_trainset()
 
     def _train_(self):

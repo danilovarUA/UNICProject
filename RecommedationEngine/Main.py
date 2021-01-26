@@ -1,22 +1,21 @@
-from Database import session
+from Database import session, Rating, Recommendation
 from Rater import Rater
 import Constants
 
 
 class RecommendationEngine:
     def __init__(self):
-        self.session = s
-        self.rating = self.database.select_all("rating")[1]
+        self.ratings = session.query(Rating).all()  # TODO rating changed
         self.rater = None
         self.initialise_rater()
 
     def initialise_rater(self):
         print("Initialising Rater")
-        self.rater = Rater(self.rating)
+        self.rater = Rater(self.ratings)
 
     def generate_all_recommendations(self):
         print("Counting user rating")
-        user_likes = count_user_ratings(self.rating)
+        user_likes = count_user_ratings(self.ratings)
         print("Users for recommendations before trim: {}".format(len(user_likes)))
         user_likes = trim_users(user_likes)
         print("Users for recommendations after trim: {}".format(len(user_likes)))
@@ -26,25 +25,25 @@ class RecommendationEngine:
 
     def generate_recommendations_for_user(self, user_id):
         recommendations = self.rater.get_ratings(user_id)
-        recommendations = trim_watched_recommendations(user_id, recommendations, self.database)
+        recommendations = trim_watched_recommendations(user_id, recommendations)
         recommendations_keys = sorted(recommendations, key=recommendations.get,
-                                      reverse=True)[:Constants.MIN_RATINGS_TO_RECOMMEND]
+                                      reverse=True)[:Constants.RECOMMENDATIONS_PER_USER]
         new_recommendations = {}
         for key in recommendations_keys:
             new_recommendations[key] = recommendations[key]
         for movie_id in new_recommendations:
-            self.database.insert({"user_id": user_id, "movie_id": movie_id,
-                                  "predicted_rating": new_recommendations[movie_id]}, "recommendation")
+            session.add(Recommendation(
+                user_id=user_id, movie_id=movie_id, expected_mark=new_recommendations[movie_id]))
+            session.commit()
 
 
-def count_user_ratings(rating):
-    # TODO store as a user field to save time PROBABLY
+def count_user_ratings(ratings):
     user_likes = {}
-    for item in rating:
-        if item[0] in user_likes:
-            user_likes[item[0]] += 1
+    for rating in ratings:
+        if rating.user_id in user_likes:
+            user_likes[rating.user_id] += 1
         else:
-            user_likes[item[0]] = 1
+            user_likes[rating.user_id] = 1
     return user_likes
 
 
@@ -58,12 +57,12 @@ def trim_users(user_likes):
     return user_likes
 
 
-def trim_watched_recommendations(user_id, recommendations, database):
-    user_rating = database.select_eq({"user_id": user_id}, "rating")[1]
-    liked_movies = [item[1] for item in user_rating]
+def trim_watched_recommendations(user_id, recommendations):
+    user_ratings = session.query(Rating).filter_by(user_id=user_id).all()
+    liked_movie_ids = [user_rating.movie_id for user_rating in user_ratings]
     deletion_candidates = []
     for movie_id in recommendations:
-        if movie_id in liked_movies:
+        if movie_id in liked_movie_ids:
             deletion_candidates.append(movie_id)
     for deletion_candidate in deletion_candidates:
         del recommendations[deletion_candidate]

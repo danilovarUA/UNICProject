@@ -11,6 +11,7 @@ Base = declarative_base()
 session_maker = sessionmaker(bind=engine)
 session = session_maker()
 
+
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)

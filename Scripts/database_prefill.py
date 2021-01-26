@@ -8,7 +8,7 @@ from Tools.PasswordGenerator import generate_password
 faker = faker.Faker()
 
 
-def prefill_users(clean=True, amount=20):
+def prefill_users(clean=True, amount=300):
     if clean:
         session.query(User).delete()
     for counter in range(amount):
@@ -19,7 +19,7 @@ def prefill_users(clean=True, amount=20):
     session.commit()
 
 
-def prefill_movies(clean=True, amount=500):
+def prefill_movies(clean=True, amount=1000):
     if clean:
         session.query(Movie).delete()
     data = pd.read_csv('../data/movies_metadata.csv')
@@ -35,7 +35,7 @@ def clean_recommendations():
     session.commit()
 
 
-def prefill_ratings(clean=True, max_amount=0):
+def prefill_ratings(clean=True, max_amount=30):
     if clean:
         session.query(Rating).delete()
 
@@ -49,7 +49,7 @@ def prefill_ratings(clean=True, max_amount=0):
     session.commit()
 
 
-def main(movies=False, users=False, ratings=True, recommendations_clean=False):
+def main(movies=True, users=True, ratings=True, recommendations_clean=True):
     if movies:
         prefill_movies()
     if users:
