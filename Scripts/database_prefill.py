@@ -9,8 +9,7 @@ db = Database()
 faker = faker.Faker()
 
 
-def prefill_users(clean=True):
-    amount = 300
+def prefill_users(clean=True, amount=20):
     table_name = "user"
     if clean:
         print("Importing users with pre clean")
@@ -30,7 +29,7 @@ def prefill_users(clean=True):
     print("Inserting user [{}]: ({})".format( result, "admin"))
 
 
-def prefill_movies(clean=True):
+def prefill_movies(clean=True, amount=500):
     table_name = "movie"
     if clean:
         print("Importing movies with pre clean")
@@ -39,7 +38,7 @@ def prefill_movies(clean=True):
     else:
         print("Importing movies")
     data = pd.read_csv('../data/movies_metadata.csv')
-    titles = data["original_title"]
+    titles = data["original_title"][:amount]
     counter = 0
     for title in titles:
         counter += 1
@@ -47,7 +46,7 @@ def prefill_movies(clean=True):
         print("Inserting movie {}/{} [{}]: ({})".format(counter, len(titles), result, title))
 
 
-def prefill_likes(clean=True):
+def prefill_likes(clean=True, max_amount=50):
     table_name = "rating"
     if clean:
         print("Importing likes with pre clean")
@@ -64,7 +63,7 @@ def prefill_likes(clean=True):
     for user_id in user_ids:
         user_counter += 1
         movie_counter = 0
-        sampled_movie_ids = random.sample(movie_ids, random.randint(0, 60))
+        sampled_movie_ids = random.sample(movie_ids, random.randint(0, max_amount))
         for movie_id in sampled_movie_ids:
             movie_counter += 1
             rating = random.randint(1, 5)
@@ -73,13 +72,16 @@ def prefill_likes(clean=True):
                 user_counter, len(user_ids), movie_id, movie_counter, len(movie_ids), result))
 
 
-def main(movies=False, users=False, likes=True):
+def main(movies=True, users=True, likes=True, recommendations_clean=True):
     if movies:
         prefill_movies()
     if users:
         prefill_users()
     if likes:
         prefill_likes()
+
+    if recommendations_clean:
+        db.delete_all("recommendations")
 
 
 if __name__ == "__main__":
