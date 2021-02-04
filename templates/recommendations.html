@@ -2,7 +2,7 @@
 {% block main %}
 <ul class="list-group">
   {% for recommendation in data.recommendations %}
-  <li class="list-group-item d-flex justify-content-between align-items-center">"{{recommendation.Movie.name}}"</li>
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{recommendation.Recommendation.expected_mark}} - "{{recommendation.Movie.name}}"</li>
   {% endfor %}
   </ul>
 {% endblock %}
