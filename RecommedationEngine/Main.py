@@ -1,17 +1,29 @@
+from RecommedationEngine import Constants
 from Database import session, Rating, Recommendation
-from Rater import Rater
-import Constants
+from RecommedationEngine.Rater import Rater
 
 
 class RecommendationEngine:
     def __init__(self):
-        self.ratings = session.query(Rating).all()  # TODO rating changed
+        self.ratings = session.query(Rating).all()
         self.rater = None
-        self.initialise_rater()
 
     def initialise_rater(self):
-        print("Initialising Rater")
         self.rater = Rater(self.ratings)
+
+    def work_on_user(self, user_id):
+        user_ratings = session.query(Rating).filter_by(user_id=user_id).all()
+        ratings_number = len(user_ratings)
+        user_recommendations = session.query(Recommendation).filter_by(user_id=user_id).all()
+        recommendations_number = len(user_recommendations)
+        if ((recommendations_number == 0 and ratings_number > Constants.MIN_RATINGS_TO_RECOMMEND) or
+                ratings_number % (Constants.MIN_RATINGS_TO_RECOMMEND/2) == 0):
+            # Basically if user did >20 and has no recommendations or did 30, 40, 50 and so on ratings - make
+            # new recommendations
+            self.initialise_rater()
+            session.query(Recommendation).filter_by(user_id=user_id).delete()
+            session.commit()
+            self.generate_recommendations_for_user(user_id)
 
     def generate_all_recommendations(self):
         print("Counting user rating")

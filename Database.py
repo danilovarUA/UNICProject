@@ -1,8 +1,9 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import os
+
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy import create_engine
-import os
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 DATABASE_PATH = "sqlite:///{}/data/database.db?check_same_thread=False".format(os.path.dirname(os.path.abspath(
     __file__)))
@@ -54,4 +55,6 @@ class Recommendation(Base):
 
 
 if __name__ == "__main__":
-    Base.metadata.create_all(engine)
+    #Base.metadata.drop_all(engine)
+    #Base.metadata.create_all(engine)
+    print(session.query(Recommendation).all())

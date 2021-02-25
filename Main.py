@@ -1,6 +1,7 @@
-from Database import session, User, Movie, Rating, Recommendation
 from flask import Flask, request, render_template, redirect, url_for
+from RecommedationEngine.Main import RecommendationEngine as RecEng
 import PageValues
+from Database import session, User, Movie, Rating, Recommendation
 from Exceptions import AuthorisationException
 
 IP_ADDRESS = "0.0.0.0"
@@ -21,6 +22,38 @@ def login():
         if "error" in request.values:
             data["error"] = request.values["error"]
         return render_template(data["url"], data=data)
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    try:
+        check_logged_in()
+        return redirect(url_for(DEFAULT_PAGE))
+    except AuthorisationException:
+        data = PageValues.pages["register"]
+        if "error" in request.values:
+            data["error"] = request.values["error"]
+        return render_template(data["url"], data=data)
+
+
+@app.route("/create_account", methods=["GET", "POST"])
+def create_account():
+    try:
+        check_logged_in()
+        return redirect(url_for(DEFAULT_PAGE))
+    except AuthorisationException:
+        try:
+            email = request.form['email']
+            password = request.form["password"]
+            name = request.form["name"]
+            session.add(User(name=name, email=email, password=password))
+            session.commit()
+            resp = redirect(url_for(DEFAULT_PAGE))
+            resp.set_cookie('email', email)
+            resp.set_cookie('password', password)
+            return resp
+        except Exception:
+            return redirect('/register?error="UnknownError')
 
 
 @app.route('/set_login_cookies', methods=['GET', 'POST'])
@@ -54,25 +87,6 @@ def go_to_page(url_name, additional_data):
     return render_template(data["url"], data=data)
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    try:
-        check_logged_in()
-        return redirect(url_for(DEFAULT_PAGE))
-    except AuthorisationException:
-        data = PageValues.pages["register"]
-        if "error" in request.values:
-            data["error"] = request.values["error"]
-        if "email" in request.form and "password" in request.form and "name" in request.form:
-            user = User(name=request.form["name"], email=request.form["email"], password=request.form["password"])
-            session.add(user)
-            session.commit()
-            # TODO: might throw exception if constrains are violated
-            return redirect(url_for("set_login_cookies"))
-        # TODO: check if it works with all the form fields
-        return render_template(data["url"], data=data)
-
-
 def get_current_user():
     return session.query(User).filter_by(email=request.cookies.get('email'),
                                          password=request.cookies.get("password")).first()
@@ -89,6 +103,7 @@ def search():
             movie = session.query(Movie).filter_by(id=request.form["movie_id"]).first()
             session.add(Rating(user_id=user.id, movie_id=movie.id, mark=request.form["rank"]))
             session.commit()
+            RecEng().work_on_user(user.id)
             data["message"] = "Your like {} for movie '{}' was added".format(request.form["rank"], movie.name)
 
         return go_to_page("search", data)
@@ -134,7 +149,7 @@ def likes_history():
     try:
         check_logged_in()
         recs = session.query(Movie, Rating).filter(Rating.user_id == get_current_user().id
-                                                           ).filter(Movie.id == Rating.movie_id).all()
+                                                   ).filter(Movie.id == Rating.movie_id).all()
         return go_to_page("likes_history", {"likes": recs})
     except AuthorisationException:
         return redirect(url_for('login'))

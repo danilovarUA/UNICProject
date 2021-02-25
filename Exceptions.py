@@ -1,2 +1,2 @@
-class AuthorisationException (Exception):
+class AuthorisationException(Exception):
     pass

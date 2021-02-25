@@ -1,17 +1,23 @@
 {% extends 'base.html' %}
 {% block main %}
-<form class="m-3" action="/like" method="POST">
+<form action="/like" class="m-3" method="POST">
   {% for movie in data.movies %}
 
   <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="movie_id" id="radio1" value="{{movie.id}}" checked>
-  <label class="form-check-label" for="radio1">
-    {{movie.name}}
-  </label>
-</div>
-  {% endfor %}
-  <div class="my-3">
-    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">Like</button>
+    <input checked class="form-check-input" id="radio1" name="movie_id" type="radio" value="{{movie.id}}">
+    <label class="form-check-label" for="radio1">
+      {{movie.name}}
+    </label>
   </div>
+  {% endfor %}
+  {% if data.movies|length == 0 %}
+    No results unfortunately:(
+{% endif %}
+  {% if data.movies|length > 0 %}
+    <div class="my-3">
+    <button class="btn btn-primary btn-lg btn-block" name="submit" type="submit">Like</button>
+  </div>
+{% endif %}
+
 </form>
 {% endblock %}

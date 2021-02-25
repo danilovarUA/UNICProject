@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
 {% block main %}
-  <h3 class="m-3">Welcome {{data.person_name}}🤗! Let's find a movie you watched</h3>
-  <p class=" text-warning m-3"><b>{{data.message}}</b></p>
+<h3 class="m-3">Welcome {{data.person_name}}🤗! Let's find a movie you watched</h3>
+<p class=" text-warning m-3"><b>{{data.message}}</b></p>
 <form action="/results" method="POST">
   <div class="form-group m-3">
-    <input type="text" name="search_string" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Movie name">
+    <input aria-describedby="emailHelp" class="form-control" id="exampleInputEmail1" name="search_string" placeholder="Movie name"
+           type="text">
   </div>
   <div class="m-3">
-    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+    <button class="btn btn-primary btn-lg btn-block" name="submit" type="submit">Submit</button>
   </div>
 </form>
 {% endblock %}

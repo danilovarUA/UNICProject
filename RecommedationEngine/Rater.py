@@ -1,8 +1,10 @@
 import pandas as pd
 from surprise import Reader, Dataset, KNNWithMeans
-import Constants
+from RecommedationEngine import Constants
+
 
 #  https://realpython.com/build-recommendation-engine-collaborative-filtering/#how-to-find-similar-users-on-the-basis-of-ratings
+
 
 class Rater:
     def __init__(self, ratings):

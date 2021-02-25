@@ -2,7 +2,12 @@
 {% block main %}
 <ul class="list-group">
   {% for like in data.likes %}
-  <li class="list-group-item d-flex justify-content-between align-items-center">{{like.Rating.mark}}: "{{like.Movie.name}}"</li>
+  <li class="list-group-item d-flex justify-content-between align-items-center">{{like.Rating.mark}}:
+    "{{like.Movie.name}}"
+  </li>
   {% endfor %}
-  </ul>
+</ul>
+{% if data.likes|length == 0 %}
+    You did not rate any movie yet:(
+{% endif %}
 {% endblock %}

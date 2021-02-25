@@ -1,6 +1,5 @@
-import string
 import random
-
+import string
 
 LETTERS = string.ascii_letters
 NUMBERS = string.digits

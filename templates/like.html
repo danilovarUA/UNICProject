@@ -1,41 +1,41 @@
 {% extends 'base.html' %}
 {% block main %}
 Your movie is {{data.movie.name}}, rank it 1..5
-<form class="m-3" action="/search" method="POST">
+<form action="/search" class="m-3" method="POST">
 
   <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="rank" id="r1" value="1" checked>
-  <label class="form-check-label" for="r1">
-    1
-  </label>
-</div>
-  <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="rank" id="r2" value="2" checked>
-  <label class="form-check-label" for="r2">
-    2
-  </label>
-</div>
-  <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="rank" id="r3" id="r3" value="3" checked>
-  <label class="form-check-label" for="r3">
-    3
-  </label>
-</div>
-  <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="rank" id="r4" value="4" checked>
-  <label class="form-check-label" for="r4">
-    4
-  </label>
-</div>
-  <div class="form-check m-2">
-  <input class="form-check-input" type="radio" name="rank" id="r5" value="5" checked>
-  <label class="form-check-label" for="r5">
-    5
-  </label>
-</div>
-  <div class="my-3">
-    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">Like</button>
+    <input checked class="form-check-input" id="r1" name="rank" type="radio" value="1">
+    <label class="form-check-label" for="r1">
+      1
+    </label>
   </div>
-  <input type="hidden" name="movie_id" value="{{data.movie.id}}">
+  <div class="form-check m-2">
+    <input checked class="form-check-input" id="r2" name="rank" type="radio" value="2">
+    <label class="form-check-label" for="r2">
+      2
+    </label>
+  </div>
+  <div class="form-check m-2">
+    <input checked class="form-check-input" id="r3" id="r3" name="rank" type="radio" value="3">
+    <label class="form-check-label" for="r3">
+      3
+    </label>
+  </div>
+  <div class="form-check m-2">
+    <input checked class="form-check-input" id="r4" name="rank" type="radio" value="4">
+    <label class="form-check-label" for="r4">
+      4
+    </label>
+  </div>
+  <div class="form-check m-2">
+    <input checked class="form-check-input" id="r5" name="rank" type="radio" value="5">
+    <label class="form-check-label" for="r5">
+      5
+    </label>
+  </div>
+  <div class="my-3">
+    <button class="btn btn-primary btn-lg btn-block" name="submit" type="submit">Like</button>
+  </div>
+  <input name="movie_id" type="hidden" value="{{data.movie.id}}">
 </form>
 {% endblock %}

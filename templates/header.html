@@ -1,12 +1,27 @@
 <header class="mb-5">
   <nav class="navbar navbar-light bg-secondary justify-content-between">
-  <h1 class="px-5 text-white">{{data.name}}</h1>
-  <span class="px-5">
-    <a href="/set_login_cookies?reset=true">
-      <button type="button" class="float-right btn btn-outline-light">Log Out</button>
+    <h1 class="px-5 text-white">{{data.name}}</h1>
+    <span class="px-5">
+    <a href="/recommendations">
+      <button class="float-right btn btn-outline-light" type="button">Recommendations</button>
     </a>
   </span>
-</nav>
+    <span class="px-5">
+    <a href="/likes_history">
+      <button class="float-right btn btn-outline-light" type="button">Likes history</button>
+    </a>
+  </span>
+    <span class="px-5">
+    <a href="/search">
+      <button class="float-right btn btn-outline-light" type="button">Search a movie</button>
+    </a>
+  </span>
+    <span class="px-5">
+    <a href="/set_login_cookies?reset=true">
+      <button class="float-right btn btn-outline-light" type="button">Log Out</button>
+    </a>
+  </span>
+  </nav>
 
 
 </header>
